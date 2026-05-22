@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>death_will_never_part_us.exe</title>
+<style>
+:root {
+  --bg:#070707;
+  --panel:#101010;
+  --panel2:#151515;
+  --line:#252525;
+  --text:#eeeeee;
+  --soft:#909090;
+  --dim:#555;
+  --error:#ff2b3a;
+  --pink:#ff4fa3;
+  --mono:"SFMono-Regular","Consolas","Menlo","Courier New","Yu Gothic","Hiragino Kaku Gothic ProN",monospace;
+}
+
+* { box-sizing:border-box; }
+
+html,body {
+  margin:0;
+  min-height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--mono);
+}
+
+body {
+  padding:24px;
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+
+#run {
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+
+.page {
+  display:block;
+  width:min(1180px,100%);
+  margin:auto;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  position:relative;
+  z-index:5;
+}
+
+#run:checked + .page {
+  pointer-events:none;
+  cursor:default;
+}
+
+.window {
+  border:1px solid var(--line);
+  background:rgba(16,16,16,.96);
+  overflow:hidden;
+  box-shadow:0 0 52px rgba(0,0,0,.42);
+  min-height:calc(100vh - 48px);
+}
+
+#run:checked + .page .window {
+  animation:windowTransparent 10s ease forwards;
+  animation-delay:25.24s;
+}
+
+.topbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:12px 16px;
+  border-bottom:1px solid var(--line);
+  background:var(--panel2);
+}
+
+.left {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+
+.dot-window {
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#333;
+  flex:0 0 auto;
+}
+
+.filename {
+  margin-left:10px;
+  font-size:12px;
+  color:var(--soft);
+  white-space:nowrap;
+  overflow:visible;
+  text-overflow:clip;
+}
+
+.state {
+  font-size:11px;
+  color:var(--soft);
+  white-space:nowrap;
+}
+
+.state::after {
+  content:" :: WAITING";
+}
+
+#run:checked + .page .state::after {
+  content:" :: RUNNING";
+  color:var(--text);
+}
+
+.tabs {
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:28px;
+  border-bottom:1px solid var(--line);
+  background:#0d0d0d;
+  padding:0 18px;
+  overflow-x:auto;
+  overflow-y:hidden;
+}
+
+.tab {
+  padding:14px 0;
+  color:var(--soft);
+  font-size:12px;
+  border-bottom:2px solid transparent;
+  white-space:nowrap;
+  flex:0 0 auto;
+}
+
+.tab.active {
+  color:var(--text);
+  border-bottom-color:var(--text);
+}
+
+.editor {
+  display:grid;
+  grid-template-columns:64px minmax(0,1fr);
+}
+
+.lines {
+  background:#101010;
+  border-right:1px solid var(--line);
+  padding:18px 0;
+  text-align:right;
+  color:var(--dim);
+  user-select:none;
+}
+
+.lines div {
+  min-height:28px;
+  padding-right:14px;
+  font-size:12px;
+  line-height:28px;
+}
+
+.code {
+  padding:18px 24px 34px;
+  overflow-x:auto;
+  position:relative;
+  z-index:8;
+}
+
+.code-line {
+  min-height:28px;
+  line-height:28px;
+  white-space:pre-wrap;
+  word-break:break-word;
+  font-size:14px;
+  color:#eaeaea;
+}
+
+.code-line.blank {
+  opacity:0;
+}
+
+#run:checked + .page .code-line.blank {
+  animation:showLine .01s linear forwards;
+  animation-delay:var(--delay);
+}
+
+.char {
+  opacity:0;
+}
+
+.code-line.first .char {
+  opacity:1;
+}
+
+.code-line.first::after {
+  content:"▋";
+  margin-left:4px;
+  color:#f2f2f2;
+  animation:blink 1s steps(2,end) infinite;
+}
+
+#run:checked + .page .code-line.first::after {
+  content:"";
+  animation:none;
+}
+
+#run:checked + .page .char {
+  animation:showChar .01s linear forwards;
+  animation-delay:var(--cdelay);
+}
+
+.error,
+.error .char {
+  color:var(--error);
+}
+
+.success,
+.success .char {
+  color:#f5f5f5;
+}
+
+.poem {
+  color:var(--pink);
+  position:relative;
+  z-index:12;
+}
+
+.poem .char {
+  color:inherit;
+}
+
+#run:checked + .page .poem .char {
+  animation:showChar .01s linear forwards;
+  animation-delay:var(--cdelay);
+}
+
+.dots {
+  color:#eaeaea;
+}
+
+.dots span {
+  opacity:0;
+}
+
+#run:checked + .page .dots .dot-one {
+  animation:showChar .01s linear forwards;
+  animation-delay:calc(var(--delay) + .55s);
+}
+
+#run:checked + .page .dots .dot-two {
+  animation:showChar .01s linear forwards;
+  animation-delay:calc(var(--delay) + 1.15s);
+}
+
+#run:checked + .page .dots .dot-three {
+  animation:showChar .01s linear forwards;
+  animation-delay:calc(var(--delay) + 1.75s);
+}
+
+.cursor {
+  opacity:0;
+  min-height:28px;
+}
+
+#run:checked + .page .cursor {
+  animation:showLine .01s linear forwards, cursorOut 3s ease forwards;
+  animation-delay:24.04s, calc(25.24s + 3.2s);
+}
+
+.cursor::after {
+  content:"▋";
+  color:#f2f2f2;
+  animation:blink 1s steps(2,end) infinite;
+}
+
+.hint {
+  padding:12px 16px;
+  border-top:1px solid var(--line);
+  color:var(--soft);
+  font-size:11px;
+  background:#101010;
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+}
+
+#run:checked + .page .hint-start {
+  display:none;
+}
+
+/* 后半：枠・タブ・行番号・白文字ログを消す */
+#run:checked + .page .topbar,
+#run:checked + .page .tabs,
+#run:checked + .page .lines,
+#run:checked + .page .hint {
+  animation:uiOut 9.5s ease forwards;
+  animation-delay:calc(25.24s + 2.2s);
+}
+
+#run:checked + .page .code-line:not(.poem):not(.blank):not(.cursor) {
+  animation:logOut 8.5s ease forwards;
+  animation-delay:calc(25.24s + 3.4s);
+}
+
+#run:checked + .page .poem {
+  animation:poemToWhite 10.5s ease forwards;
+  animation-delay:25.24s;
+}
+
+.video-stars,
+.white-veil {
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+.video-stars {
+  z-index:2;
+  opacity:0;
+}
+
+.video-stars video {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.video-stars video {
+  opacity:.66;
+  filter:brightness(1.18) contrast(1.05);
+  mix-blend-mode:screen;
+}
+
+
+
+#run:checked ~ .video-stars {
+  animation:starsIn 14s ease forwards;
+  animation-delay:25.24s;
+}
+
+#run:checked ~ .white-veil {
+  z-index:3;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255,255,255,0),
+      rgba(255,245,252,.05) 38%,
+      rgba(255,255,255,.13) 72%,
+      rgba(255,255,255,.20)
+    );
+  opacity:0;
+}
+
+#run:checked ~ .white-veil {
+  animation:veilIn 13s ease forwards;
+  animation-delay:calc(25.24s + 2s);
+}
+
+@keyframes showChar {
+  to { opacity:1; }
+}
+
+@keyframes showLine {
+  to { opacity:1; }
+}
+
+@keyframes blink {
+  50% { opacity:0; }
+}
+
+@keyframes starsIn {
+  0% { opacity:0; }
+  24% { opacity:.22; }
+  68% { opacity:.48; }
+  100% { opacity:.62; }
+}
+
+
+  42% { opacity:.12; }
+  100% { opacity:.42; }
+}
+
+@keyframes veilIn {
+  0% { opacity:0; }
+  48% { opacity:.06; }
+  100% { opacity:.18; }
+}
+
+@keyframes windowTransparent {
+  0% {
+    border-color:var(--line);
+    background:rgba(16,16,16,.96);
+    box-shadow:0 0 52px rgba(0,0,0,.42);
+  }
+  60% {
+    border-color:rgba(255,255,255,.12);
+    background:rgba(16,16,16,.42);
+    box-shadow:0 0 40px rgba(255,220,245,.10);
+  }
+  100% {
+    border-color:rgba(255,255,255,0);
+    background:rgba(16,16,16,0);
+    box-shadow:none;
+  }
+}
+
+@keyframes uiOut {
+  0% {
+    opacity:1;
+    filter:blur(0);
+  }
+  100% {
+    opacity:0;
+    filter:blur(4px);
+  }
+}
+
+@keyframes logOut {
+  0% {
+    opacity:1;
+    filter:blur(0);
+  }
+  100% {
+    opacity:0;
+    filter:blur(3px);
+  }
+}
+
+@keyframes cursorOut {
+  to { opacity:0; }
+}
+
+@keyframes poemToWhite {
+  0% {
+    color:var(--pink);
+    text-shadow:none;
+  }
+  45% {
+    color:#ffc2df;
+    text-shadow:0 0 8px rgba(255,120,189,.22);
+  }
+  100% {
+    color:#fff;
+    text-shadow:
+      0 0 8px rgba(255,255,255,.82),
+      0 0 18px rgba(255,210,235,.38);
+  }
+}
+
+@media(max-width:760px) {
+  body {
+    padding:12px;
+    overflow-y:auto;
+  }
+
+  .window {
+    min-height:calc(100vh - 24px);
+  }
+
+  .topbar {
+    padding:12px 14px;
+  }
+
+  .filename {
+    font-size:11px;
+    max-width:none;
+  }
+
+  .state {
+    display:none;
+  }
+
+  .tabs {
+    gap:22px;
+    padding:0 14px;
+  }
+
+  .editor {
+    grid-template-columns:48px minmax(0,1fr);
+  }
+
+  .lines div {
+    font-size:11px;
+    padding-right:10px;
+  }
+
+  .code {
+    padding:18px 14px 32px;
+  }
+
+  .code-line {
+    font-size:12px;
+  }
+
+  .video-stars video {
+    opacity:.70;
+  }
+
+  
+}
+</style>
+</head>
+
+<body>
+
+<input type="radio" name="run-state" id="run">
+
+<label class="page" for="run">
+
+<div class="window">
+
+<div class="topbar">
+  <div class="left">
+    <div class="dot-window"></div>
+    <div class="dot-window"></div>
+    <div class="dot-window"></div>
+    <div class="filename">death_will_never_part_us.exe</div>
+  </div>
+  <div class="state">STATUS</div>
+</div>
+
+<div class="tabs">
+  <div class="tab active">MEMORY</div>
+  <div class="tab">LINK</div>
+  <div class="tab">ECHO</div>
+  <div class="tab">PERSISTENCE</div>
+</div>
+
+<div class="editor">
+  <div class="lines">
+    <div>1</div>
+<div>2</div>
+<div>3</div>
+<div>4</div>
+<div>5</div>
+<div>6</div>
+<div>7</div>
+<div>8</div>
+<div>9</div>
+<div>10</div>
+<div>11</div>
+<div>12</div>
+<div>13</div>
+<div>14</div>
+<div>15</div>
+<div>16</div>
+<div>17</div>
+<div>18</div>
+<div>19</div>
+<div>20</div>
+<div>21</div>
+<div>22</div>
+<div>23</div>
+<div>24</div>
+<div>25</div>
+<div>26</div>
+<div>27</div>
+<div>28</div>
+<div>29</div>
+<div>30</div>
+<div>31</div>
+<div>32</div>
+<div>33</div>
+<div>34</div>
+<div>35</div>
+<div>36</div>
+<div>37</div>
+<div>38</div>
+<div>39</div>
+<div>40</div>
+<div>41</div>
+<div>42</div>
+<div>43</div>
+<div>44</div>
+<div>45</div>
+<div>46</div>
+<div>47</div>
+<div>48</div>
+<div>49</div>
+<div>50</div>
+<div>51</div>
+<div>52</div>
+  </div>
+
+  <div class="code">
+    <div class="code-line normal first" style="--delay:0.25s;"><span class="char" style="--cdelay:0.25s;">[</span><span class="char" style="--cdelay:0.28s;">&nbsp;</span><span class="char" style="--cdelay:0.30s;">p</span><span class="char" style="--cdelay:0.33s;">r</span><span class="char" style="--cdelay:0.35s;">o</span><span class="char" style="--cdelay:0.38s;">c</span><span class="char" style="--cdelay:0.41s;">e</span><span class="char" style="--cdelay:0.43s;">s</span><span class="char" style="--cdelay:0.46s;">s</span><span class="char" style="--cdelay:0.48s;">_</span><span class="char" style="--cdelay:0.51s;">s</span><span class="char" style="--cdelay:0.54s;">t</span><span class="char" style="--cdelay:0.56s;">a</span><span class="char" style="--cdelay:0.59s;">r</span><span class="char" style="--cdelay:0.61s;">t</span><span class="char" style="--cdelay:0.64s;">&nbsp;</span><span class="char" style="--cdelay:0.67s;">]</span></div><div class="code-line blank" style="--delay:0.84s;"><span>&nbsp;</span></div><div class="code-line normal" style="--delay:1.18s;"><span class="char" style="--cdelay:1.18s;">i</span><span class="char" style="--cdelay:1.21s;">n</span><span class="char" style="--cdelay:1.23s;">i</span><span class="char" style="--cdelay:1.26s;">t</span><span class="char" style="--cdelay:1.29s;">i</span><span class="char" style="--cdelay:1.31s;">a</span><span class="char" style="--cdelay:1.34s;">l</span><span class="char" style="--cdelay:1.36s;">i</span><span class="char" style="--cdelay:1.39s;">z</span><span class="char" style="--cdelay:1.42s;">i</span><span class="char" style="--cdelay:1.44s;">n</span><span class="char" style="--cdelay:1.47s;">g</span><span class="char" style="--cdelay:1.49s;">&nbsp;</span><span class="char" style="--cdelay:1.52s;">d</span><span class="char" style="--cdelay:1.55s;">e</span><span class="char" style="--cdelay:1.57s;">a</span><span class="char" style="--cdelay:1.60s;">t</span><span class="char" style="--cdelay:1.62s;">h</span><span class="char" style="--cdelay:1.65s;">_</span><span class="char" style="--cdelay:1.68s;">w</span><span class="char" style="--cdelay:1.70s;">i</span><span class="char" style="--cdelay:1.73s;">l</span><span class="char" style="--cdelay:1.75s;">l</span><span class="char" style="--cdelay:1.78s;">_</span><span class="char" style="--cdelay:1.81s;">n</span><span class="char" style="--cdelay:1.83s;">e</span><span class="char" style="--cdelay:1.86s;">v</span><span class="char" style="--cdelay:1.88s;">e</span><span class="char" style="--cdelay:1.91s;">r</span><span class="char" style="--cdelay:1.94s;">_</span><span class="char" style="--cdelay:1.96s;">p</span><span class="char" style="--cdelay:1.99s;">a</span><span class="char" style="--cdelay:2.01s;">r</span><span class="char" style="--cdelay:2.04s;">t</span><span class="char" style="--cdelay:2.07s;">_</span><span class="char" style="--cdelay:2.09s;">u</span><span class="char" style="--cdelay:2.12s;">s</span><span class="char" style="--cdelay:2.14s;">.</span><span class="char" style="--cdelay:2.23s;">e</span><span class="char" style="--cdelay:2.26s;">x</span><span class="char" style="--cdelay:2.29s;">e</span><span class="char" style="--cdelay:2.31s;">.</span><span class="char" style="--cdelay:2.40s;">.</span><span class="char" style="--cdelay:2.49s;">.</span></div><div class="code-line normal" style="--delay:2.74s;"><span class="char" style="--cdelay:2.74s;">l</span><span class="char" style="--cdelay:2.76s;">o</span><span class="char" style="--cdelay:2.79s;">a</span><span class="char" style="--cdelay:2.81s;">d</span><span class="char" style="--cdelay:2.84s;">i</span><span class="char" style="--cdelay:2.87s;">n</span><span class="char" style="--cdelay:2.89s;">g</span><span class="char" style="--cdelay:2.92s;">&nbsp;</span><span class="char" style="--cdelay:2.94s;">p</span><span class="char" style="--cdelay:2.97s;">e</span><span class="char" style="--cdelay:3.00s;">r</span><span class="char" style="--cdelay:3.02s;">s</span><span class="char" style="--cdelay:3.05s;">i</span><span class="char" style="--cdelay:3.07s;">s</span><span class="char" style="--cdelay:3.10s;">t</span><span class="char" style="--cdelay:3.13s;">e</span><span class="char" style="--cdelay:3.15s;">n</span><span class="char" style="--cdelay:3.18s;">t</span><span class="char" style="--cdelay:3.20s;">_</span><span class="char" style="--cdelay:3.23s;">m</span><span class="char" style="--cdelay:3.26s;">e</span><span class="char" style="--cdelay:3.28s;">m</span><span class="char" style="--cdelay:3.31s;">o</span><span class="char" style="--cdelay:3.33s;">r</span><span class="char" style="--cdelay:3.36s;">y</span><span class="char" style="--cdelay:3.39s;">.</span><span class="char" style="--cdelay:3.48s;">.</span><span class="char" style="--cdelay:3.57s;">.</span></div><div class="code-line normal" style="--delay:3.81s;"><span class="char" style="--cdelay:3.81s;">c</span><span class="char" style="--cdelay:3.83s;">h</span><span class="char" style="--cdelay:3.86s;">e</span><span class="char" style="--cdelay:3.89s;">c</span><span class="char" style="--cdelay:3.91s;">k</span><span class="char" style="--cdelay:3.94s;">i</span><span class="char" style="--cdelay:3.96s;">n</span><span class="char" style="--cdelay:3.99s;">g</span><span class="char" style="--cdelay:4.02s;">&nbsp;</span><span class="char" style="--cdelay:4.04s;">l</span><span class="char" style="--cdelay:4.07s;">i</span><span class="char" style="--cdelay:4.09s;">f</span><span class="char" style="--cdelay:4.12s;">e</span><span class="char" style="--cdelay:4.15s;">_</span><span class="char" style="--cdelay:4.17s;">s</span><span class="char" style="--cdelay:4.20s;">i</span><span class="char" style="--cdelay:4.22s;">g</span><span class="char" style="--cdelay:4.25s;">n</span><span class="char" style="--cdelay:4.28s;">a</span><span class="char" style="--cdelay:4.30s;">l</span><span class="char" style="--cdelay:4.33s;">.</span><span class="char" style="--cdelay:4.42s;">.</span><span class="char" style="--cdelay:4.51s;">.</span></div><div class="code-line normal" style="--delay:4.75s;"><span class="char" style="--cdelay:4.75s;">l</span><span class="char" style="--cdelay:4.78s;">i</span><span class="char" style="--cdelay:4.80s;">f</span><span class="char" style="--cdelay:4.83s;">e</span><span class="char" style="--cdelay:4.86s;">_</span><span class="char" style="--cdelay:4.88s;">s</span><span class="char" style="--cdelay:4.91s;">i</span><span class="char" style="--cdelay:4.93s;">g</span><span class="char" style="--cdelay:4.96s;">n</span><span class="char" style="--cdelay:4.99s;">a</span><span class="char" style="--cdelay:5.01s;">l</span><span class="char" style="--cdelay:5.04s;">&nbsp;</span><span class="char" style="--cdelay:5.06s;">:</span><span class="char" style="--cdelay:5.09s;">:</span><span class="char" style="--cdelay:5.12s;">&nbsp;</span><span class="char" style="--cdelay:5.14s;">l</span><span class="char" style="--cdelay:5.17s;">o</span><span class="char" style="--cdelay:5.19s;">s</span><span class="char" style="--cdelay:5.22s;">t</span></div><div class="code-line blank" style="--delay:5.40s;"><span>&nbsp;</span></div><div class="code-line normal" style="--delay:5.74s;"><span class="char" style="--cdelay:5.74s;">d</span><span class="char" style="--cdelay:5.76s;">e</span><span class="char" style="--cdelay:5.79s;">t</span><span class="char" style="--cdelay:5.81s;">e</span><span class="char" style="--cdelay:5.84s;">c</span><span class="char" style="--cdelay:5.87s;">t</span><span class="char" style="--cdelay:5.89s;">i</span><span class="char" style="--cdelay:5.92s;">n</span><span class="char" style="--cdelay:5.94s;">g</span><span class="char" style="--cdelay:5.97s;">&nbsp;</span><span class="char" style="--cdelay:6.00s;">s</span><span class="char" style="--cdelay:6.02s;">e</span><span class="char" style="--cdelay:6.05s;">p</span><span class="char" style="--cdelay:6.07s;">a</span><span class="char" style="--cdelay:6.10s;">r</span><span class="char" style="--cdelay:6.13s;">a</span><span class="char" style="--cdelay:6.15s;">t</span><span class="char" style="--cdelay:6.18s;">i</span><span class="char" style="--cdelay:6.20s;">o</span><span class="char" style="--cdelay:6.23s;">n</span><span class="char" style="--cdelay:6.26s;">_</span><span class="char" style="--cdelay:6.28s;">r</span><span class="char" style="--cdelay:6.31s;">e</span><span class="char" style="--cdelay:6.33s;">q</span><span class="char" style="--cdelay:6.36s;">u</span><span class="char" style="--cdelay:6.39s;">e</span><span class="char" style="--cdelay:6.41s;">s</span><span class="char" style="--cdelay:6.44s;">t</span><span class="char" style="--cdelay:6.46s;">.</span><span class="char" style="--cdelay:6.55s;">.</span><span class="char" style="--cdelay:6.65s;">.</span></div><div class="code-line normal" style="--delay:6.89s;"><span class="char" style="--cdelay:6.89s;">c</span><span class="char" style="--cdelay:6.91s;">a</span><span class="char" style="--cdelay:6.94s;">u</span><span class="char" style="--cdelay:6.96s;">s</span><span class="char" style="--cdelay:6.99s;">e</span><span class="char" style="--cdelay:7.02s;">&nbsp;</span><span class="char" style="--cdelay:7.04s;">:</span><span class="char" style="--cdelay:7.07s;">:</span><span class="char" style="--cdelay:7.09s;">&nbsp;</span><span class="char" style="--cdelay:7.12s;">d</span><span class="char" style="--cdelay:7.15s;">e</span><span class="char" style="--cdelay:7.17s;">a</span><span class="char" style="--cdelay:7.20s;">t</span><span class="char" style="--cdelay:7.22s;">h</span></div><div class="code-line blank" style="--delay:7.40s;"><span>&nbsp;</span></div><div class="code-line normal" style="--delay:7.74s;"><span class="char" style="--cdelay:7.74s;">e</span><span class="char" style="--cdelay:7.77s;">x</span><span class="char" style="--cdelay:7.79s;">e</span><span class="char" style="--cdelay:7.82s;">c</span><span class="char" style="--cdelay:7.84s;">u</span><span class="char" style="--cdelay:7.87s;">t</span><span class="char" style="--cdelay:7.90s;">i</span><span class="char" style="--cdelay:7.92s;">n</span><span class="char" style="--cdelay:7.95s;">g</span><span class="char" style="--cdelay:7.97s;">&nbsp;</span><span class="char" style="--cdelay:8.00s;">s</span><span class="char" style="--cdelay:8.03s;">e</span><span class="char" style="--cdelay:8.05s;">p</span><span class="char" style="--cdelay:8.08s;">a</span><span class="char" style="--cdelay:8.10s;">r</span><span class="char" style="--cdelay:8.13s;">a</span><span class="char" style="--cdelay:8.16s;">t</span><span class="char" style="--cdelay:8.18s;">i</span><span class="char" style="--cdelay:8.21s;">o</span><span class="char" style="--cdelay:8.23s;">n</span><span class="char" style="--cdelay:8.26s;">_</span><span class="char" style="--cdelay:8.29s;">p</span><span class="char" style="--cdelay:8.31s;">r</span><span class="char" style="--cdelay:8.34s;">o</span><span class="char" style="--cdelay:8.36s;">c</span><span class="char" style="--cdelay:8.39s;">e</span><span class="char" style="--cdelay:8.42s;">s</span><span class="char" style="--cdelay:8.44s;">s</span><span class="char" style="--cdelay:8.47s;">.</span><span class="char" style="--cdelay:8.56s;">.</span><span class="char" style="--cdelay:8.65s;">.</span></div><div class="code-line dots" style="--delay:8.89s;">
+<span class="dot-one">.</span><span class="dot-two">.</span><span class="dot-three">.</span>
+</div><div class="code-line error" style="--delay:11.94s;"><span class="char" style="--cdelay:11.94s;">E</span><span class="char" style="--cdelay:11.97s;">R</span><span class="char" style="--cdelay:11.99s;">R</span><span class="char" style="--cdelay:12.02s;">O</span><span class="char" style="--cdelay:12.05s;">R</span><span class="char" style="--cdelay:12.07s;">&nbsp;</span><span class="char" style="--cdelay:12.10s;">:</span><span class="char" style="--cdelay:12.12s;">:</span><span class="char" style="--cdelay:12.15s;">&nbsp;</span><span class="char" style="--cdelay:12.18s;">s</span><span class="char" style="--cdelay:12.20s;">e</span><span class="char" style="--cdelay:12.23s;">p</span><span class="char" style="--cdelay:12.25s;">a</span><span class="char" style="--cdelay:12.28s;">r</span><span class="char" style="--cdelay:12.31s;">a</span><span class="char" style="--cdelay:12.33s;">t</span><span class="char" style="--cdelay:12.36s;">i</span><span class="char" style="--cdelay:12.38s;">o</span><span class="char" style="--cdelay:12.41s;">n</span><span class="char" style="--cdelay:12.44s;">_</span><span class="char" style="--cdelay:12.46s;">f</span><span class="char" style="--cdelay:12.49s;">a</span><span class="char" style="--cdelay:12.51s;">i</span><span class="char" style="--cdelay:12.54s;">l</span><span class="char" style="--cdelay:12.57s;">e</span><span class="char" style="--cdelay:12.59s;">d</span></div><div class="code-line blank" style="--delay:12.77s;"><span>&nbsp;</span></div><div class="code-line normal" style="--delay:13.11s;"><span class="char" style="--cdelay:13.11s;">r</span><span class="char" style="--cdelay:13.13s;">e</span><span class="char" style="--cdelay:13.16s;">s</span><span class="char" style="--cdelay:13.19s;">t</span><span class="char" style="--cdelay:13.21s;">o</span><span class="char" style="--cdelay:13.24s;">r</span><span class="char" style="--cdelay:13.26s;">i</span><span class="char" style="--cdelay:13.29s;">n</span><span class="char" style="--cdelay:13.32s;">g</span><span class="char" style="--cdelay:13.34s;">&nbsp;</span><span class="char" style="--cdelay:13.37s;">c</span><span class="char" style="--cdelay:13.39s;">o</span><span class="char" style="--cdelay:13.42s;">n</span><span class="char" style="--cdelay:13.45s;">n</span><span class="char" style="--cdelay:13.47s;">e</span><span class="char" style="--cdelay:13.50s;">c</span><span class="char" style="--cdelay:13.52s;">t</span><span class="char" style="--cdelay:13.55s;">i</span><span class="char" style="--cdelay:13.58s;">o</span><span class="char" style="--cdelay:13.60s;">n</span><span class="char" style="--cdelay:13.63s;">.</span><span class="char" style="--cdelay:13.72s;">.</span><span class="char" style="--cdelay:13.81s;">.</span></div><div class="code-line success" style="--delay:14.05s;"><span class="char" style="--cdelay:14.05s;">c</span><span class="char" style="--cdelay:14.08s;">o</span><span class="char" style="--cdelay:14.10s;">n</span><span class="char" style="--cdelay:14.13s;">n</span><span class="char" style="--cdelay:14.15s;">e</span><span class="char" style="--cdelay:14.18s;">c</span><span class="char" style="--cdelay:14.21s;">t</span><span class="char" style="--cdelay:14.23s;">i</span><span class="char" style="--cdelay:14.26s;">o</span><span class="char" style="--cdelay:14.28s;">n</span><span class="char" style="--cdelay:14.31s;">.</span><span class="char" style="--cdelay:14.40s;">s</span><span class="char" style="--cdelay:14.43s;">t</span><span class="char" style="--cdelay:14.45s;">a</span><span class="char" style="--cdelay:14.48s;">t</span><span class="char" style="--cdelay:14.51s;">u</span><span class="char" style="--cdelay:14.53s;">s</span><span class="char" style="--cdelay:14.56s;">&nbsp;</span><span class="char" style="--cdelay:14.58s;">:</span><span class="char" style="--cdelay:14.61s;">:</span><span class="char" style="--cdelay:14.64s;">&nbsp;</span><span class="char" style="--cdelay:14.66s;">m</span><span class="char" style="--cdelay:14.69s;">a</span><span class="char" style="--cdelay:14.71s;">i</span><span class="char" style="--cdelay:14.74s;">n</span><span class="char" style="--cdelay:14.77s;">t</span><span class="char" style="--cdelay:14.79s;">a</span><span class="char" style="--cdelay:14.82s;">i</span><span class="char" style="--cdelay:14.84s;">n</span><span class="char" style="--cdelay:14.87s;">e</span><span class="char" style="--cdelay:14.90s;">d</span></div><div class="code-line success" style="--delay:15.07s;"><span class="char" style="--cdelay:15.07s;">m</span><span class="char" style="--cdelay:15.10s;">e</span><span class="char" style="--cdelay:15.12s;">m</span><span class="char" style="--cdelay:15.15s;">o</span><span class="char" style="--cdelay:15.18s;">r</span><span class="char" style="--cdelay:15.20s;">y</span><span class="char" style="--cdelay:15.23s;">.</span><span class="char" style="--cdelay:15.32s;">s</span><span class="char" style="--cdelay:15.34s;">t</span><span class="char" style="--cdelay:15.37s;">a</span><span class="char" style="--cdelay:15.40s;">t</span><span class="char" style="--cdelay:15.42s;">u</span><span class="char" style="--cdelay:15.45s;">s</span><span class="char" style="--cdelay:15.47s;">&nbsp;</span><span class="char" style="--cdelay:15.50s;">:</span><span class="char" style="--cdelay:15.53s;">:</span><span class="char" style="--cdelay:15.55s;">&nbsp;</span><span class="char" style="--cdelay:15.58s;">a</span><span class="char" style="--cdelay:15.60s;">c</span><span class="char" style="--cdelay:15.63s;">t</span><span class="char" style="--cdelay:15.66s;">i</span><span class="char" style="--cdelay:15.68s;">v</span><span class="char" style="--cdelay:15.71s;">e</span></div><div class="code-line blank" style="--delay:15.88s;"><span>&nbsp;</span></div><div class="code-line normal" style="--delay:16.22s;"><span class="char" style="--cdelay:16.22s;">o</span><span class="char" style="--cdelay:16.25s;">u</span><span class="char" style="--cdelay:16.28s;">t</span><span class="char" style="--cdelay:16.30s;">p</span><span class="char" style="--cdelay:16.33s;">u</span><span class="char" style="--cdelay:16.35s;">t</span><span class="char" style="--cdelay:16.38s;">&nbsp;</span><span class="char" style="--cdelay:16.41s;">:</span><span class="char" style="--cdelay:16.43s;">:</span></div><div class="code-line blank" style="--delay:16.61s;"><span>&nbsp;</span></div><div class="code-line poem" style="--delay:16.95s;"><span class="char" style="--cdelay:16.95s;">D</span><span class="char" style="--cdelay:16.97s;">e</span><span class="char" style="--cdelay:17.00s;">a</span><span class="char" style="--cdelay:17.03s;">t</span><span class="char" style="--cdelay:17.05s;">h</span><span class="char" style="--cdelay:17.08s;">&nbsp;</span><span class="char" style="--cdelay:17.10s;">w</span><span class="char" style="--cdelay:17.13s;">i</span><span class="char" style="--cdelay:17.16s;">l</span><span class="char" style="--cdelay:17.18s;">l</span><span class="char" style="--cdelay:17.21s;">&nbsp;</span><span class="char" style="--cdelay:17.23s;">n</span><span class="char" style="--cdelay:17.26s;">e</span><span class="char" style="--cdelay:17.29s;">v</span><span class="char" style="--cdelay:17.31s;">e</span><span class="char" style="--cdelay:17.34s;">r</span><span class="char" style="--cdelay:17.36s;">&nbsp;</span><span class="char" style="--cdelay:17.39s;">p</span><span class="char" style="--cdelay:17.42s;">a</span><span class="char" style="--cdelay:17.44s;">r</span><span class="char" style="--cdelay:17.47s;">t</span><span class="char" style="--cdelay:17.49s;">&nbsp;</span><span class="char" style="--cdelay:17.52s;">u</span><span class="char" style="--cdelay:17.55s;">s</span><span class="char" style="--cdelay:17.57s;">.</span></div><div class="code-line blank" style="--delay:17.81s;"><span>&nbsp;</span></div><div class="code-line poem" style="--delay:18.15s;"><span class="char" style="--cdelay:18.15s;">S</span><span class="char" style="--cdelay:18.18s;">i</span><span class="char" style="--cdelay:18.21s;">d</span><span class="char" style="--cdelay:18.23s;">e</span><span class="char" style="--cdelay:18.26s;">&nbsp;</span><span class="char" style="--cdelay:18.28s;">b</span><span class="char" style="--cdelay:18.31s;">y</span><span class="char" style="--cdelay:18.34s;">&nbsp;</span><span class="char" style="--cdelay:18.36s;">s</span><span class="char" style="--cdelay:18.39s;">i</span><span class="char" style="--cdelay:18.41s;">d</span><span class="char" style="--cdelay:18.44s;">e</span><span class="char" style="--cdelay:18.47s;">,</span><span class="char" style="--cdelay:18.56s;">&nbsp;</span><span class="char" style="--cdelay:18.58s;">w</span><span class="char" style="--cdelay:18.61s;">e</span><span class="char" style="--cdelay:18.63s;">&nbsp;</span><span class="char" style="--cdelay:18.66s;">c</span><span class="char" style="--cdelay:18.69s;">o</span><span class="char" style="--cdelay:18.71s;">n</span><span class="char" style="--cdelay:18.74s;">q</span><span class="char" style="--cdelay:18.76s;">u</span><span class="char" style="--cdelay:18.79s;">e</span><span class="char" style="--cdelay:18.82s;">r</span><span class="char" style="--cdelay:18.84s;">&nbsp;</span><span class="char" style="--cdelay:18.87s;">t</span><span class="char" style="--cdelay:18.89s;">h</span><span class="char" style="--cdelay:18.92s;">e</span><span class="char" style="--cdelay:18.95s;">&nbsp;</span><span class="char" style="--cdelay:18.97s;">d</span><span class="char" style="--cdelay:19.00s;">a</span><span class="char" style="--cdelay:19.02s;">r</span><span class="char" style="--cdelay:19.05s;">k</span></div><div class="code-line poem" style="--delay:19.23s;"><span class="char" style="--cdelay:19.23s;">a</span><span class="char" style="--cdelay:19.25s;">n</span><span class="char" style="--cdelay:19.28s;">d</span><span class="char" style="--cdelay:19.30s;">&nbsp;</span><span class="char" style="--cdelay:19.33s;">c</span><span class="char" style="--cdelay:19.36s;">h</span><span class="char" style="--cdelay:19.38s;">e</span><span class="char" style="--cdelay:19.41s;">r</span><span class="char" style="--cdelay:19.43s;">i</span><span class="char" style="--cdelay:19.46s;">s</span><span class="char" style="--cdelay:19.49s;">h</span><span class="char" style="--cdelay:19.51s;">&nbsp;</span><span class="char" style="--cdelay:19.54s;">t</span><span class="char" style="--cdelay:19.56s;">h</span><span class="char" style="--cdelay:19.59s;">e</span><span class="char" style="--cdelay:19.62s;">&nbsp;</span><span class="char" style="--cdelay:19.64s;">d</span><span class="char" style="--cdelay:19.67s;">a</span><span class="char" style="--cdelay:19.69s;">w</span><span class="char" style="--cdelay:19.72s;">n</span><span class="char" style="--cdelay:19.75s;">.</span></div><div class="code-line blank" style="--delay:19.99s;"><span>&nbsp;</span></div><div class="code-line poem" style="--delay:20.33s;"><span class="char" style="--cdelay:20.33s;">「</span><span class="char" style="--cdelay:20.42s;">死</span><span class="char" style="--cdelay:20.44s;">が</span><span class="char" style="--cdelay:20.47s;">、</span><span class="char" style="--cdelay:20.56s;">決</span><span class="char" style="--cdelay:20.59s;">し</span><span class="char" style="--cdelay:20.61s;">て</span><span class="char" style="--cdelay:20.64s;">僕</span><span class="char" style="--cdelay:20.67s;">た</span><span class="char" style="--cdelay:20.69s;">ち</span><span class="char" style="--cdelay:20.72s;">を</span><span class="char" style="--cdelay:20.74s;">引</span><span class="char" style="--cdelay:20.77s;">き</span><span class="char" style="--cdelay:20.80s;">裂</span><span class="char" style="--cdelay:20.82s;">く</span><span class="char" style="--cdelay:20.85s;">こ</span><span class="char" style="--cdelay:20.87s;">と</span><span class="char" style="--cdelay:20.90s;">は</span><span class="char" style="--cdelay:20.93s;">な</span><span class="char" style="--cdelay:20.95s;">い</span><span class="char" style="--cdelay:20.98s;">。</span><span class="char" style="--cdelay:21.07s;">」</span></div><div class="code-line blank" style="--delay:21.31s;"><span>&nbsp;</span></div><div class="code-line poem" style="--delay:21.65s;"><span class="char" style="--cdelay:21.65s;">「</span><span class="char" style="--cdelay:21.74s;">肩</span><span class="char" style="--cdelay:21.77s;">を</span><span class="char" style="--cdelay:21.79s;">並</span><span class="char" style="--cdelay:21.82s;">べ</span><span class="char" style="--cdelay:21.84s;">、</span><span class="char" style="--cdelay:21.94s;">僕</span><span class="char" style="--cdelay:21.96s;">た</span><span class="char" style="--cdelay:21.99s;">ち</span><span class="char" style="--cdelay:22.01s;">は</span><span class="char" style="--cdelay:22.04s;">闇</span><span class="char" style="--cdelay:22.07s;">を</span><span class="char" style="--cdelay:22.09s;">踏</span><span class="char" style="--cdelay:22.12s;">破</span><span class="char" style="--cdelay:22.14s;">し</span><span class="char" style="--cdelay:22.17s;">、</span><span class="char" style="--cdelay:22.26s;">訪</span><span class="char" style="--cdelay:22.29s;">れ</span><span class="char" style="--cdelay:22.31s;">た</span><span class="char" style="--cdelay:22.34s;">暁</span><span class="char" style="--cdelay:22.36s;">を</span><span class="char" style="--cdelay:22.39s;">愛</span><span class="char" style="--cdelay:22.42s;">お</span><span class="char" style="--cdelay:22.44s;">し</span><span class="char" style="--cdelay:22.47s;">む</span><span class="char" style="--cdelay:22.49s;">。</span><span class="char" style="--cdelay:22.59s;">」</span></div><div class="code-line blank" style="--delay:22.83s;"><span>&nbsp;</span></div><div class="code-line normal" style="--delay:23.17s;"><span class="char" style="--cdelay:23.17s;">[</span><span class="char" style="--cdelay:23.19s;">&nbsp;</span><span class="char" style="--cdelay:23.22s;">p</span><span class="char" style="--cdelay:23.24s;">r</span><span class="char" style="--cdelay:23.27s;">o</span><span class="char" style="--cdelay:23.30s;">c</span><span class="char" style="--cdelay:23.32s;">e</span><span class="char" style="--cdelay:23.35s;">s</span><span class="char" style="--cdelay:23.37s;">s</span><span class="char" style="--cdelay:23.40s;">_</span><span class="char" style="--cdelay:23.43s;">c</span><span class="char" style="--cdelay:23.45s;">o</span><span class="char" style="--cdelay:23.48s;">m</span><span class="char" style="--cdelay:23.50s;">p</span><span class="char" style="--cdelay:23.53s;">l</span><span class="char" style="--cdelay:23.56s;">e</span><span class="char" style="--cdelay:23.58s;">t</span><span class="char" style="--cdelay:23.61s;">e</span><span class="char" style="--cdelay:23.63s;">&nbsp;</span><span class="char" style="--cdelay:23.66s;">]</span></div><div class="code-line cursor" style="--delay:23.84s;"></div>
+  </div>
+</div>
+
+<div class="hint">
+  <span class="hint-start">tap once to execute memory</span>
+  <span>connection.state: persistent</span>
+</div>
+
+</div>
+
+</label>
+
+<div class="video-stars">
+  <video id="wheatVideo" muted autoplay loop playsinline preload="auto">
+    <source src="stars.mp4" type="video/mp4">
+  </video>
+</div>
+
+<div class="white-veil"></div>
+
+
+
+<script>
+(function(){
+  const videos = Array.from(document.querySelectorAll('video'));
+  let started = false;
+
+  async function startVideos(){
+    if(started) return;
+    started = true;
+
+    for(const video of videos){
+      try{
+        video.muted = true;
+        video.defaultMuted = true;
+        video.setAttribute('muted', '');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('webkit-playsinline', '');
+        video.playsInline = true;
+        video.loop = true;
+        video.load();
+        video.currentTime = 0;
+        await video.play();
+      }catch(e){}
+    }
+
+    setTimeout(function(){
+      videos.forEach(function(video){
+        try{
+          if(video.paused) video.play().catch(function(){});
+        }catch(e){}
+      });
+    }, 900);
+  }
+
+  document.addEventListener('pointerdown', startVideos, { once:true });
+  document.addEventListener('touchstart', startVideos, { once:true, passive:true });
+  document.addEventListener('click', startVideos, { once:true });
+})();
+</script>
+
+
+</body>
+</html>
